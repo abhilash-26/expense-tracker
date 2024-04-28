@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../../controllers/user.controller');
 
-router.post('/register', controller.createUser);
+router.post('/create-income', controller.createIncome);
 
-router.post('/login', controller.userLogin);
+router.post('/update-income', controller.updateIncome);
 
-router.post('/forgot-password', controller.forgotPassword);
+router.post('/create-budget', controller.createBudget);
 
-router.post('/reset-password', controller.resetPassword);
+router.post('/update-budget', controller.updateBudget);
 
 module.exports = router;

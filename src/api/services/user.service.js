@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const {sendEmail} = require('../utils/email');
 const {jwtSecretKey} = require('../../config/vars');
+const Income = require('../models/income.model');
+const Budget = require('../models/budget.model');
 
 exports.createUser = async (req, res) => {
 	try {
@@ -125,6 +127,7 @@ exports.passwordChangeEmail = async (req, res) => {
 exports.verifyOtp = async (req, res) => {
 	try {
 		const {otp, email, password} = req.body;
+		console.log('testtttttttttttttttt');
 		if (!email) {
 			return res.status(httpStatus.BAD_REQUEST).send({status: false, message: 'email is required'});
 		}
@@ -164,6 +167,109 @@ exports.verifyOtp = async (req, res) => {
 		};
 		await Otp.findOneAndDelete({otp, email});
 		return res.status(httpStatus.CREATED).send({status: true, data: dataToSend});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createIncome = async (req, res) => {
+	try {
+		const {income, userId} = req.body;
+		const result = await Income.create({userId, income});
+		res.status(httpStatus.CREATED).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editIncome = async (req, res) => {
+	try {
+		const {income, userId} = req.body;
+		const result = await Income.updateOne({userId}, {income});
+		res.status(httpStatus.CREATED).send({status: true, message: 'Income Updated'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createBudget = async (req, res) => {
+	try {
+		const {
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			others,
+			userId,
+		} = req.body;
+		const result = await Budget.create({
+			userId,
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			others,
+		});
+		res.status(httpStatus.CREATED).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getBudget = async (req, res) => {
+	try {
+		const id = req.query;
+		const result = await Budget.findById(id);
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editBudget = async (req, res) => {
+	try {
+		const {
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			userId,
+			others,
+		} = req.body;
+		const result = await Budget.updateOne(
+			{userId},
+			{
+				rent,
+				electricityBill,
+				phoneBill,
+				internetBill,
+				studentLoan,
+				grocery,
+				gym,
+				dineOut,
+				savings,
+				subscriptions,
+				others,
+			}
+		);
+		res.status(httpStatus.CREATED).send({status: true, message: 'Budget updated'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
