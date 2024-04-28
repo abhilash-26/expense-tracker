@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-// const {emailConfig} = require('../../../config/vars');
+const {fromEmail, emailPassword} = require('../../config/vars');
 // const logger = require('../../../config/logger');
 
 exports.sendEmail = async (email, otp) => {
@@ -7,8 +7,8 @@ exports.sendEmail = async (email, otp) => {
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
-				user: 'krabhilash226@gmail.com',
-				pass: 'fwzp lseo txjo qljb',
+				user: fromEmail,
+				pass: emailPassword,
 			},
 			secure: false,
 		});
@@ -20,9 +20,9 @@ exports.sendEmail = async (email, otp) => {
 			}
 		});
 		const mailOptions = {
-			from: 'sotp96774@gmail.com',
+			from: fromEmail,
 			to: email,
-			subject: 'Hey there here is your OTP ',
+			subject: 'password reset otp',
 			text: `Your OTP is ${otp}`,
 		};
 		await transporter.sendMail(mailOptions, function (error, info) {
