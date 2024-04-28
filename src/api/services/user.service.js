@@ -116,7 +116,9 @@ exports.passwordChangeEmail = async (req, res) => {
 		});
 		const result = await sendEmail(email, otp);
 
-		return res.status(httpStatus.CREATED).send({status: true, message: 'Otp Sent', data: result});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, message: 'Otp Sent to the email', data: email});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
