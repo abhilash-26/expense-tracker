@@ -161,6 +161,10 @@ exports.resetPassword = async (req, res) => {
 		if (!password) {
 			return res.status(httpStatus.OK).send({status: false, message: 'password is required'});
 		}
+		const user = await User.findOne({email});
+		if (!user) {
+			return res.status(httpStatus.OK).send({status: false, message: 'No user found'});
+		}
 		const salt = await bcrypt.genSalt(10);
 		const hashPassword = await bcrypt.hash(password, salt);
 		const updatedUser = await User.findOneAndUpdate(
@@ -173,7 +177,9 @@ exports.resetPassword = async (req, res) => {
 			email: updatedUser.email,
 			name: updatedUser.fullName,
 		};
-		return res.status(httpStatus.CREATED).send({status: true, data: dataToSend});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, data: dataToSend, message: 'Password reset successfully'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
