@@ -67,7 +67,7 @@ exports.userLogin = async (req, res) => {
 		}
 		const comparePassword = await bcrypt.compare(password, user.password);
 		if (comparePassword == false) {
-			return res.status(httpStatus.FORBIDDEN).send({status: false, message: 'Invalid password'});
+			return res.status(httpStatus.OK).send({status: false, message: 'Invalid password'});
 		}
 		const userData = {
 			id: user._id,
