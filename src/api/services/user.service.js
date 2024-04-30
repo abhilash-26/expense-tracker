@@ -99,7 +99,8 @@ exports.passwordChangeEmail = async (req, res) => {
 		if (!user) {
 			return res.status(httpStatus.OK).send({status: false, message: 'No user found'});
 		}
-		const otp = Math.floor(Math.random(4) * 10000);
+		// const otp = Math.floor(Math.random(4) * 10000);
+		const otp = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
 		let currentTime = new Date();
 		var expiryTime = new Date(currentTime.getTime() + 30 * 60000);
 
