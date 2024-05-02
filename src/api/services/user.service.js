@@ -259,7 +259,7 @@ exports.createBudget = async (req, res) => {
 
 exports.getBudget = async (req, res) => {
 	try {
-		const userId = req.query;
+		const {userId} = req.query;
 		const result = await Budget.find({userId});
 		res.status(httpStatus.OK).send({status: true, data: result});
 	} catch (error) {
