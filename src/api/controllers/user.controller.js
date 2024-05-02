@@ -8,6 +8,13 @@ const {
 	createBudget,
 	editBudget,
 } = require('../services/user.service');
+const {
+	createUser,
+	userLogin,
+	passwordChangeEmail,
+	verifyOtp,
+	resetPassword,
+} = require('../services/user.service');
 const httpStatus = require('http-status');
 exports.createUser = async (req, res) => {
 	try {
@@ -33,7 +40,7 @@ exports.forgotPassword = async (req, res) => {
 	}
 };
 
-exports.resetPassword = async (req, res) => {
+exports.verifyOtp = async (req, res) => {
 	try {
 		await verifyOtp(req, res);
 	} catch (error) {
@@ -68,6 +75,14 @@ exports.createBudget = async (req, res) => {
 exports.updateBudget = async (req, res) => {
 	try {
 		await editBudget(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.resetPassword = async (req, res) => {
+	try {
+		await resetPassword(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}
