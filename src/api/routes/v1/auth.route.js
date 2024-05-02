@@ -10,4 +10,6 @@ router.post('/forgot-password', controller.forgotPassword);
 
 router.post('/reset-password', controller.resetPassword);
 
+router.post('/verify-otp', controller.verifyOtp);
+
 module.exports = router;

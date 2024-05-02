@@ -198,104 +198,14 @@ exports.createIncome = async (req, res) => {
 	}
 };
 
-exports.editIncome = async (req, res) => {
+exports.getIncome = async (req, res) => {
 	try {
-		const {income, userId} = req.body;
-		const result = await Income.updateOne({userId}, {income});
-		res.status(httpStatus.CREATED).send({status: true, message: 'Income Updated'});
-	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
-	}
-};
-
-exports.createBudget = async (req, res) => {
-	try {
-		const {
-			rent,
-			electricityBill,
-			phoneBill,
-			internetBill,
-			studentLoan,
-			grocery,
-			gym,
-			dineOut,
-			savings,
-			subscriptions,
-			others,
-			userId,
-		} = req.body;
-		const result = await Budget.create({
-			userId,
-			rent,
-			electricityBill,
-			phoneBill,
-			internetBill,
-			studentLoan,
-			grocery,
-			gym,
-			dineOut,
-			savings,
-			subscriptions,
-			others,
-		});
-		res.status(httpStatus.CREATED).send({status: true, data: result});
-	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
-	}
-};
-
-exports.getBudget = async (req, res) => {
-	try {
-		const id = req.query;
-		const result = await Budget.findById(id);
-	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
-	}
-};
-
-exports.editBudget = async (req, res) => {
-	try {
-		const {
-			rent,
-			electricityBill,
-			phoneBill,
-			internetBill,
-			studentLoan,
-			grocery,
-			gym,
-			dineOut,
-			savings,
-			subscriptions,
-			userId,
-			others,
-		} = req.body;
-		const result = await Budget.updateOne(
-			{userId},
-			{
-				rent,
-				electricityBill,
-				phoneBill,
-				internetBill,
-				studentLoan,
-				grocery,
-				gym,
-				dineOut,
-				savings,
-				subscriptions,
-				others,
-			}
-		);
-		res.status(httpStatus.CREATED).send({status: true, message: 'Budget updated'});
-	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
-	}
-};
-
-exports.createIncome = async (req, res) => {
-	try {
-		const {income, userId} = req.body;
-		const result = await Income.create({userId, income});
-		res.status(httpStatus.CREATED).send({status: true, data: result});
+		const {userId} = req.query;
+		if (!userId) {
+			return res.send({status: false, message: 'UserId is required'});
+		}
+		const result = await Income.findOne({userId});
+		res.status(httpStatus.OK).send({status: true, data: result});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
@@ -349,8 +259,9 @@ exports.createBudget = async (req, res) => {
 
 exports.getBudget = async (req, res) => {
 	try {
-		const id = req.query;
-		const result = await Budget.findById(id);
+		const userId = req.query;
+		const result = await Budget.find({userId});
+		res.status(httpStatus.OK).send({status: true, data: result});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
