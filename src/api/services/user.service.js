@@ -213,9 +213,15 @@ exports.getIncome = async (req, res) => {
 
 exports.editIncome = async (req, res) => {
 	try {
-		const {income, userId} = req.body;
-		const result = await Income.updateOne({userId}, {income});
-		res.status(httpStatus.CREATED).send({status: true, message: 'Income Updated'});
+		const {income, id} = req.body;
+		if (!id) {
+			return res.send({status: false, message: 'Id is required'});
+		}
+		const result = await Income.findByIdAndUpdate(id, {income});
+		if (result) {
+			return res.status(httpStatus.CREATED).send({status: true, message: 'Income Updated'});
+		}
+		return res.send({status: false, message: 'Something went wrong'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
@@ -280,26 +286,29 @@ exports.editBudget = async (req, res) => {
 			dineOut,
 			savings,
 			subscriptions,
-			userId,
+			id,
 			others,
 		} = req.body;
-		const result = await Budget.updateOne(
-			{userId},
-			{
-				rent,
-				electricityBill,
-				phoneBill,
-				internetBill,
-				studentLoan,
-				grocery,
-				gym,
-				dineOut,
-				savings,
-				subscriptions,
-				others,
-			}
-		);
-		res.status(httpStatus.CREATED).send({status: true, message: 'Budget updated'});
+		if (!id) {
+			return res.send({status: false, message: 'Id is required'});
+		}
+		const result = await Budget.findByIdAndUpdate(id, {
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			others,
+		});
+		if (result) {
+			return res.status(httpStatus.CREATED).send({status: true, message: 'Budget updated'});
+		}
+		return res.send({status: false, message: 'Something went wrong'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
