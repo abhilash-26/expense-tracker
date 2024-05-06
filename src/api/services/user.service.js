@@ -204,7 +204,7 @@ exports.getIncome = async (req, res) => {
 		if (!userId) {
 			return res.send({status: false, message: 'UserId is required'});
 		}
-		const result = await Income.findOne({userId});
+		const result = await Income.find({userId});
 		res.status(httpStatus.OK).send({status: true, data: result});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
