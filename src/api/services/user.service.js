@@ -348,6 +348,9 @@ exports.listExpense = async (req, res) => {
 exports.editExpense = async (req, res) => {
 	try {
 		const {category, amount, id} = req.body;
+		if (!id) {
+			return res.send({status: 'false', message: 'id is required'});
+		}
 		const result = await Expense.findByIdAndUpdate(id, {category, amount}, {rawResult: true});
 		return res.status(httpStatus.CREATED).send({status: true, message: 'Expense Updated'});
 	} catch (error) {
@@ -375,7 +378,7 @@ exports.createGoal = async (req, res) => {
 
 exports.listGoal = async (req, res) => {
 	try {
-		const {userId} = req.body;
+		const {userId} = req.query;
 		if (!userId) {
 			return res.send({status: false, message: 'User Id is required'});
 		}
@@ -389,10 +392,11 @@ exports.listGoal = async (req, res) => {
 exports.editGoal = async (req, res) => {
 	try {
 		const {name, amount, date, description, id} = req.body;
+		if (!id) {
+			return res.send({status: 'false', message: 'id is required'});
+		}
 		const result = await Goal.findByIdAndUpdate(id, {name, amount, date, description});
-		return res
-			.status(httpStatus.CREATED)
-			.send({status: true, data: result, message: 'Goal Updated'});
+		return res.status(httpStatus.CREATED).send({status: true, message: 'Goal Updated'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
