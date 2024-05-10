@@ -7,6 +7,8 @@ const {sendEmail} = require('../utils/email');
 const {jwtSecretKey} = require('../../config/vars');
 const Income = require('../models/income.model');
 const Budget = require('../models/budget.model');
+const Expense = require('../models/expense.model');
+const Goal = require('../models/goal.model');
 
 exports.createUser = async (req, res) => {
 	try {
@@ -309,6 +311,88 @@ exports.editBudget = async (req, res) => {
 			return res.status(httpStatus.CREATED).send({status: true, message: 'Budget updated'});
 		}
 		return res.send({status: false, message: 'Something went wrong'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createExpense = async (req, res) => {
+	try {
+		const {category, amount, userId} = req.body;
+		const result = await Expense.create({
+			userId,
+			category,
+			amount,
+		});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, data: result, message: 'Expense created'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.listExpense = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		if (!userId) {
+			return res.send({status: false, message: 'User Id is required'});
+		}
+		const result = await Expense.find({userId});
+		return res.status(httpStatus.OK).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editExpense = async (req, res) => {
+	try {
+		const {category, amount, id} = req.body;
+		const result = await Expense.findByIdAndUpdate(id, {category, amount}, {rawResult: true});
+		return res.status(httpStatus.CREATED).send({status: true, message: 'Expense Updated'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createGoal = async (req, res) => {
+	try {
+		const {amount, name, date, description, userId} = req.body;
+		const result = await Goal.create({
+			userId,
+			name,
+			amount,
+			date,
+			description,
+		});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, data: result, message: 'Goal created'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.listGoal = async (req, res) => {
+	try {
+		const {userId} = req.body;
+		if (!userId) {
+			return res.send({status: false, message: 'User Id is required'});
+		}
+		const result = await Goal.find({userId});
+		return res.status(httpStatus.OK).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editGoal = async (req, res) => {
+	try {
+		const {name, amount, date, description, id} = req.body;
+		const result = await Goal.findByIdAndUpdate(id, {name, amount, date, description});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, data: result, message: 'Goal Updated'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}

@@ -9,6 +9,12 @@ const {
 	editBudget,
 	getIncome,
 	getBudget,
+	createExpense,
+	listExpense,
+	editExpense,
+	createGoal,
+	listGoal,
+	editGoal,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -87,6 +93,54 @@ exports.getBudget = async (req, res) => {
 exports.updateBudget = async (req, res) => {
 	try {
 		await editBudget(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.createExpense = async (req, res) => {
+	try {
+		await createExpense(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.listExpense = async (req, res) => {
+	try {
+		await listExpense(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.updateExpense = async (req, res) => {
+	try {
+		await editExpense(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.createGoal = async (req, res) => {
+	try {
+		await createGoal(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.listGoal = async (req, res) => {
+	try {
+		await listGoal(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.editGoal = async (req, res) => {
+	try {
+		await editGoal(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}
