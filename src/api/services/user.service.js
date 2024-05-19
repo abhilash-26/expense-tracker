@@ -434,7 +434,8 @@ exports.sendManualNotification = async (req, res) => {
 					// console.log(sAmount);
 				});
 				const message = `You need to save ${total} this month`;
-				const title = goalResult[0].name;
+				// const title = goalResult[0].name;
+				const title = goalResult[Math.floor(Math.random() * goalResult.length)].name;
 				const userId = item._id;
 				if (item.fcmToken) {
 					await sendNotification(message, title, item.fcmToken, userId);
