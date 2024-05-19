@@ -26,4 +26,6 @@ router.get('/list-goal', controller.listGoal);
 
 router.post('/edit-goal', controller.editGoal);
 
+router.get('/notification', controller.getNotification);
+
 module.exports = router;

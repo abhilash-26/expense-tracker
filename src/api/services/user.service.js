@@ -9,10 +9,11 @@ const Income = require('../models/income.model');
 const Budget = require('../models/budget.model');
 const Expense = require('../models/expense.model');
 const Goal = require('../models/goal.model');
+const Notification = require('../models/notification.model');
 
 exports.createUser = async (req, res) => {
 	try {
-		const {fullName, email, password} = req.body;
+		const {fullName, email, password, fcmToken} = req.body;
 		if (!email) {
 			return res.status(httpStatus.OK).send({status: false, message: 'email is required'});
 		}
@@ -34,6 +35,7 @@ exports.createUser = async (req, res) => {
 			fullName,
 			email,
 			password: hash,
+			fcmToken,
 		});
 		const userData = {
 			id: result._id,
@@ -58,7 +60,7 @@ exports.createUser = async (req, res) => {
 
 exports.userLogin = async (req, res) => {
 	try {
-		const {email, password} = req.body;
+		const {email, password, fcmToken} = req.body;
 		if (!email) {
 			return res.status(httpStatus.OK).send({status: false, message: 'email is required'});
 		}
@@ -85,6 +87,9 @@ exports.userLogin = async (req, res) => {
 			id: user._id,
 			token,
 		};
+		if (fcmToken) {
+			await User.findOneAndUpdate({email}, {fcmToken});
+		}
 		return res
 			.status(httpStatus.OK)
 			.send({status: true, data: dataToSend, message: 'user login success'});
@@ -397,6 +402,16 @@ exports.editGoal = async (req, res) => {
 		}
 		const result = await Goal.findByIdAndUpdate(id, {name, amount, date, description});
 		return res.status(httpStatus.CREATED).send({status: true, message: 'Goal Updated'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getNotification = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const notification = await Notification.find({userId});
+		return res.send({status: true, data: notification});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}

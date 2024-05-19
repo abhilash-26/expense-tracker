@@ -15,6 +15,7 @@ const {
 	createGoal,
 	listGoal,
 	editGoal,
+	getNotification,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -149,6 +150,14 @@ exports.editGoal = async (req, res) => {
 exports.resetPassword = async (req, res) => {
 	try {
 		await resetPassword(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.getNotification = async (req, res) => {
+	try {
+		await getNotification(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}
