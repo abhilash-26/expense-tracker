@@ -47,6 +47,7 @@ exports.createUser = async (req, res) => {
 			email: result.email,
 			fullName: result.fullName,
 			id: result._id,
+			fcmToken: result.fcmToken,
 			token,
 		};
 		return res
@@ -85,6 +86,7 @@ exports.userLogin = async (req, res) => {
 			email: user.email,
 			fullName: user.fullName,
 			id: user._id,
+			fcmToken: user.fcmToken,
 			token,
 		};
 		if (fcmToken) {
