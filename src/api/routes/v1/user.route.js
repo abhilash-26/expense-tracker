@@ -28,4 +28,6 @@ router.post('/edit-goal', controller.editGoal);
 
 router.get('/notification', controller.getNotification);
 
+router.post('/manual-notification', controller.sendManualNotification);
+
 module.exports = router;

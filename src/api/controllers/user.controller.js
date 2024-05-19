@@ -16,6 +16,7 @@ const {
 	listGoal,
 	editGoal,
 	getNotification,
+	sendManualNotification,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -158,6 +159,14 @@ exports.resetPassword = async (req, res) => {
 exports.getNotification = async (req, res) => {
 	try {
 		await getNotification(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.sendManualNotification = async (req, res) => {
+	try {
+		await sendManualNotification(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}

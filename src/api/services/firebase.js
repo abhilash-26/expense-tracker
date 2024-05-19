@@ -1,18 +1,18 @@
 const serviceAccount = require('../../config/privateKey.json');
 const Notification = require('../models/notification.model');
 const axios = require('axios');
-const sendNotification = async () => {
-	const title = 'test title';
-	const body = 'test body';
+const sendNotification = async (message, title, userFcm, userId) => {
+	const messageTitle = title || 'test title';
+	const body = message || 'test body';
 	const dataAndroid = JSON.stringify({
-		to: 'cXB1idDdQQSH67k5rS1R3G:APA91bFMOdQYbIEZwYWscx4HbmNfpKWXrnbq2rtjA0_2CEmsInEQmRfW8bZSg6_8eWYqrafS_YsBynmZvcOT-1puS-pE_tUuWJmuT8_ehxICTs9qQOTwV1KkeZg7txsSAl2G5VWkLWiw',
+		to: userFcm,
 		notification: {
-			title: title,
+			title: messageTitle,
 			body: body,
 		},
 		data: {
 			body: body,
-			title: title,
+			title: messageTitle,
 			transaction_id: '4',
 			click_action: 'FLUTTER_NOTIFICATION_CLICK',
 		},
@@ -32,7 +32,7 @@ const sendNotification = async () => {
 	const result = await axios(config);
 
 	await Notification.create({
-		userId: '662dda01c6078243472f363a',
+		userId: userId,
 		body,
 		title,
 	});

@@ -10,6 +10,7 @@ const Budget = require('../models/budget.model');
 const Expense = require('../models/expense.model');
 const Goal = require('../models/goal.model');
 const Notification = require('../models/notification.model');
+const sendNotification = require('./firebase');
 
 exports.createUser = async (req, res) => {
 	try {
@@ -414,6 +415,34 @@ exports.getNotification = async (req, res) => {
 		const {userId} = req.query;
 		const notification = await Notification.find({userId});
 		return res.send({status: true, data: notification});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.sendManualNotification = async (req, res) => {
+	try {
+		const users = await User.find();
+		const notificationData = users.map(async (item) => {
+			const goalResult = await Goal.find({userId: item._id});
+			if (goalResult.length > 0) {
+				let total = 0;
+				goalResult.forEach((gl) => {
+					// console.log(gl.date.getMonth());
+					const sAmount = gl.amount / gl.date.getMonth() + 1;
+					total += sAmount;
+					// console.log(sAmount);
+				});
+				const message = `You need to save ${total} this month`;
+				const title = goalResult[0].name;
+				const userId = item._id;
+				if (item.fcmToken) {
+					await sendNotification(message, title, item.fcmToken, userId);
+				}
+			}
+		});
+
+		return res.send({status: true, message: 'Notification sent'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
