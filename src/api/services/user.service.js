@@ -86,7 +86,7 @@ exports.userLogin = async (req, res) => {
 			email: user.email,
 			fullName: user.fullName,
 			id: user._id,
-			fcmToken: user.fcmToken,
+			fcmToken: fcmToken ? fcmToken : user.fcmToken,
 			token,
 		};
 		if (fcmToken) {
