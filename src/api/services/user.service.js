@@ -427,15 +427,21 @@ exports.sendManualNotification = async (req, res) => {
 			const goalResult = await Goal.find({userId: item._id});
 			if (goalResult.length > 0) {
 				let total = 0;
-				goalResult.forEach((gl) => {
-					// console.log(gl.date.getMonth());
-					const sAmount = gl.amount / gl.date.getMonth() + 1;
+				goalResult.forEach(async (gl) => {
+					const yearDiff = gl.date.getFullYear() - gl.createdAt.getFullYear();
+					const monthDiff = gl.date.getMonth() - gl.createdAt.getMonth();
+					const totalDiff = yearDiff * 12 + monthDiff;
+					const sAmount = gl.amount / (totalDiff > 0 ? totalDiff : 1);
 					total += sAmount;
-					// console.log(sAmount);
+					if (item.fcmToken) {
+						const message = `You need to save ${sAmount} this month`;
+						const title = gl.name;
+						const userId = item._id;
+						await sendNotification(message, title, item.fcmToken, userId);
+					}
 				});
-				const message = `You need to save ${total} this month`;
-				// const title = goalResult[0].name;
-				const title = goalResult[Math.floor(Math.random() * goalResult.length)].name;
+				const message = `You need to save a total of ${total} this month`;
+				const title = 'Goal';
 				const userId = item._id;
 				if (item.fcmToken) {
 					await sendNotification(message, title, item.fcmToken, userId);
