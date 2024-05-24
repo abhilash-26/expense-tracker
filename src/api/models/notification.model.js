@@ -14,6 +14,9 @@ const notificationSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		transactionId: {
+			type: mongoose.Schema.Types.ObjectId,
+		},
 	},
 	{timestamps: true}
 );

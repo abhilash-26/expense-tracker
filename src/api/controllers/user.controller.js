@@ -17,6 +17,11 @@ const {
 	editGoal,
 	getNotification,
 	sendManualNotification,
+	getUsers,
+	createTransaction,
+	settleTransaction,
+	getMyPendingTransaction,
+	getMyPaidTransactions,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -31,6 +36,14 @@ exports.createUser = async (req, res) => {
 exports.userLogin = async (req, res) => {
 	try {
 		await userLogin(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.userList = async (req, res) => {
+	try {
+		await getUsers(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}
@@ -167,6 +180,38 @@ exports.getNotification = async (req, res) => {
 exports.sendManualNotification = async (req, res) => {
 	try {
 		await sendManualNotification(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.createTransaction = async (req, res) => {
+	try {
+		await createTransaction(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.settleTransaction = async (req, res) => {
+	try {
+		await settleTransaction(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.pendingTransaction = async (req, res) => {
+	try {
+		await getMyPendingTransaction(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.paidTransaction = async (req, res) => {
+	try {
+		await getMyPaidTransactions(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}

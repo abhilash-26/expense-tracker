@@ -11,6 +11,7 @@ const Expense = require('../models/expense.model');
 const Goal = require('../models/goal.model');
 const Notification = require('../models/notification.model');
 const sendNotification = require('./firebase');
+const splitTransactionModel = require('../models/splitTransaction.model');
 
 exports.createUser = async (req, res) => {
 	try {
@@ -96,6 +97,15 @@ exports.userLogin = async (req, res) => {
 		return res
 			.status(httpStatus.OK)
 			.send({status: true, data: dataToSend, message: 'user login success'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getUsers = async (req, res) => {
+	try {
+		const result = await User.find().select({fullName: 1, email: 1});
+		return res.send({status: true, data: result});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
@@ -452,5 +462,86 @@ exports.sendManualNotification = async (req, res) => {
 		return res.send({status: true, message: 'Notification sent'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createTransaction = async (req, res) => {
+	try {
+		const {users, userId, amount, title} = req.body;
+		const splitAmount = amount / (users.length + 1);
+		users.forEach(async (item) => {
+			const result = await splitTransactionModel.create({
+				borrower: userId,
+				userId: item,
+				amount: splitAmount,
+				title,
+			});
+			if (result) {
+				const tempUser = await User.findById(item);
+				const borrower = await User.findById(userId);
+				const message = `You owe ${splitAmount} to ${borrower.fullName}`;
+				const title = 'New Payment Detail';
+				const transactionId = result._id;
+				// if (tempUser.fcmToken) {
+				// 	await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+				// }
+			}
+		});
+		return res.send({status: true, message: 'Transaction Created'});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
+exports.settleTransaction = async (req, res) => {
+	try {
+		const {transactionId} = req.body;
+		const result = await splitTransactionModel.findByIdAndUpdate(
+			transactionId,
+			{isSetteled: 1},
+			{new: true}
+		);
+		if (result.isSetteled) {
+			const tempUser = await User.findById(result.userId);
+			const borrower = await User.findById(result.borrower);
+			const message = `${tempUser.fullName} has paid you`;
+			const title = 'Transaction settled';
+			const transactionId = result._id;
+			// if (borrower.fcmToken) {
+			// 	await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+			// }
+			return res.send({status: true, message: 'Transaction Settled'});
+		}
+		return res.send({status: false, message: 'Transaction not found'});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
+exports.getMyPaidTransactions = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const paidTransaction = await splitTransactionModel.find({userId, isSetteled: true});
+		return res.send({status: 1, data: paidTransaction});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
+exports.getMyPendingTransaction = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const pendingTransaction = await splitTransactionModel.find({userId, isSetteled: false});
+		return res.send({status: 1, data: pendingTransaction});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };

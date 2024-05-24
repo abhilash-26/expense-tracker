@@ -4,6 +4,8 @@ const controller = require('../../controllers/user.controller');
 
 router.post('/create-income', controller.createIncome);
 
+router.get('/list', controller.userList);
+
 router.get('/income-list', controller.getIncome);
 
 router.post('/update-income', controller.updateIncome);
@@ -29,5 +31,13 @@ router.post('/edit-goal', controller.editGoal);
 router.get('/notification', controller.getNotification);
 
 router.post('/manual-notification', controller.sendManualNotification);
+
+router.post('/create-transaction', controller.createTransaction);
+
+router.post('/settle-transaction', controller.settleTransaction);
+
+router.get('/pending-transaction', controller.pendingTransaction);
+
+router.get('/paid-transaction', controller.paidTransaction);
 
 module.exports = router;
