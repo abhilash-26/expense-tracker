@@ -5,10 +5,17 @@ const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const {sendEmail} = require('../utils/email');
 const {jwtSecretKey} = require('../../config/vars');
+const Income = require('../models/income.model');
+const Budget = require('../models/budget.model');
+const Expense = require('../models/expense.model');
+const Goal = require('../models/goal.model');
+const Notification = require('../models/notification.model');
+const sendNotification = require('./firebase');
+const splitTransactionModel = require('../models/splitTransaction.model');
 
 exports.createUser = async (req, res) => {
 	try {
-		const {fullName, email, password} = req.body;
+		const {fullName, email, password, fcmToken} = req.body;
 		if (!email) {
 			return res.status(httpStatus.OK).send({status: false, message: 'email is required'});
 		}
@@ -30,6 +37,7 @@ exports.createUser = async (req, res) => {
 			fullName,
 			email,
 			password: hash,
+			fcmToken,
 		});
 		const userData = {
 			id: result._id,
@@ -41,6 +49,7 @@ exports.createUser = async (req, res) => {
 			email: result.email,
 			fullName: result.fullName,
 			id: result._id,
+			fcmToken: result.fcmToken,
 			token,
 		};
 		return res
@@ -54,7 +63,7 @@ exports.createUser = async (req, res) => {
 
 exports.userLogin = async (req, res) => {
 	try {
-		const {email, password} = req.body;
+		const {email, password, fcmToken} = req.body;
 		if (!email) {
 			return res.status(httpStatus.OK).send({status: false, message: 'email is required'});
 		}
@@ -79,11 +88,24 @@ exports.userLogin = async (req, res) => {
 			email: user.email,
 			fullName: user.fullName,
 			id: user._id,
+			fcmToken: fcmToken ? fcmToken : user.fcmToken,
 			token,
 		};
+		if (fcmToken) {
+			await User.findOneAndUpdate({email}, {fcmToken});
+		}
 		return res
 			.status(httpStatus.OK)
 			.send({status: true, data: dataToSend, message: 'user login success'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getUsers = async (req, res) => {
+	try {
+		const result = await User.find().select({fullName: 1, email: 1});
+		return res.send({status: true, data: result});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
 	}
@@ -183,5 +205,343 @@ exports.resetPassword = async (req, res) => {
 			.send({status: true, data: dataToSend, message: 'Password reset successfully'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createIncome = async (req, res) => {
+	try {
+		const {income, userId} = req.body;
+		const result = await Income.create({userId, income});
+		res.status(httpStatus.CREATED).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getIncome = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		if (!userId) {
+			return res.send({status: false, message: 'UserId is required'});
+		}
+		const result = await Income.find({userId});
+		res.status(httpStatus.OK).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editIncome = async (req, res) => {
+	try {
+		const {income, id} = req.body;
+		if (!id) {
+			return res.send({status: false, message: 'Id is required'});
+		}
+		const result = await Income.findByIdAndUpdate(id, {income});
+		if (result) {
+			return res.status(httpStatus.CREATED).send({status: true, message: 'Income Updated'});
+		}
+		return res.send({status: false, message: 'Something went wrong'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createBudget = async (req, res) => {
+	try {
+		const {
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			others,
+			userId,
+		} = req.body;
+		const result = await Budget.create({
+			userId,
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			others,
+		});
+		res.status(httpStatus.CREATED).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getBudget = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const result = await Budget.find({userId});
+		res.status(httpStatus.OK).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editBudget = async (req, res) => {
+	try {
+		const {
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			id,
+			others,
+		} = req.body;
+		if (!id) {
+			return res.send({status: false, message: 'Id is required'});
+		}
+		const result = await Budget.findByIdAndUpdate(id, {
+			rent,
+			electricityBill,
+			phoneBill,
+			internetBill,
+			studentLoan,
+			grocery,
+			gym,
+			dineOut,
+			savings,
+			subscriptions,
+			others,
+		});
+		if (result) {
+			return res.status(httpStatus.CREATED).send({status: true, message: 'Budget updated'});
+		}
+		return res.send({status: false, message: 'Something went wrong'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createExpense = async (req, res) => {
+	try {
+		const {category, amount, userId} = req.body;
+		const result = await Expense.create({
+			userId,
+			category,
+			amount,
+		});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, data: result, message: 'Expense created'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.listExpense = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		if (!userId) {
+			return res.send({status: false, message: 'User Id is required'});
+		}
+		const result = await Expense.find({userId});
+		return res.status(httpStatus.OK).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editExpense = async (req, res) => {
+	try {
+		const {category, amount, id} = req.body;
+		if (!id) {
+			return res.send({status: 'false', message: 'id is required'});
+		}
+		const result = await Expense.findByIdAndUpdate(id, {category, amount}, {rawResult: true});
+		return res.status(httpStatus.CREATED).send({status: true, message: 'Expense Updated'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createGoal = async (req, res) => {
+	try {
+		const {amount, name, date, description, userId} = req.body;
+		const result = await Goal.create({
+			userId,
+			name,
+			amount,
+			date,
+			description,
+		});
+		return res
+			.status(httpStatus.CREATED)
+			.send({status: true, data: result, message: 'Goal created'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.listGoal = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		if (!userId) {
+			return res.send({status: false, message: 'User Id is required'});
+		}
+		const result = await Goal.find({userId});
+		return res.status(httpStatus.OK).send({status: true, data: result});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.editGoal = async (req, res) => {
+	try {
+		const {name, amount, date, description, id} = req.body;
+		if (!id) {
+			return res.send({status: 'false', message: 'id is required'});
+		}
+		const result = await Goal.findByIdAndUpdate(id, {name, amount, date, description});
+		return res.status(httpStatus.CREATED).send({status: true, message: 'Goal Updated'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.getNotification = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const notification = await Notification.find({userId});
+		return res.send({status: true, data: notification});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.sendManualNotification = async (req, res) => {
+	try {
+		const users = await User.find();
+		const notificationData = users.map(async (item) => {
+			const goalResult = await Goal.find({userId: item._id});
+			if (goalResult.length > 0) {
+				let total = 0;
+				goalResult.forEach(async (gl) => {
+					const yearDiff = gl.date.getFullYear() - gl.createdAt.getFullYear();
+					const monthDiff = gl.date.getMonth() - gl.createdAt.getMonth();
+					const totalDiff = yearDiff * 12 + monthDiff;
+					const sAmount = gl.amount / (totalDiff > 0 ? totalDiff : 1);
+					total += sAmount;
+					if (item.fcmToken) {
+						const message = `You need to save ${sAmount} this month`;
+						const title = gl.name;
+						const userId = item._id;
+						await sendNotification(message, title, item.fcmToken, userId);
+					}
+				});
+				const message = `You need to save a total of ${total} this month`;
+				const title = 'Goal';
+				const userId = item._id;
+				if (item.fcmToken) {
+					await sendNotification(message, title, item.fcmToken, userId);
+				}
+			}
+		});
+
+		return res.send({status: true, message: 'Notification sent'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
+exports.createTransaction = async (req, res) => {
+	try {
+		const {users, userId, amount, title} = req.body;
+		const splitAmount = amount / (users.length + 1);
+		users.forEach(async (item) => {
+			const result = await splitTransactionModel.create({
+				borrower: userId,
+				userId: item,
+				amount: splitAmount,
+				title,
+			});
+			if (result) {
+				const tempUser = await User.findById(item);
+				const borrower = await User.findById(userId);
+				const message = `You owe ${splitAmount} to ${borrower.fullName}`;
+				const title = 'New Payment Detail';
+				const transactionId = result._id;
+				// if (tempUser.fcmToken) {
+				// 	await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+				// }
+			}
+		});
+		return res.send({status: true, message: 'Transaction Created'});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
+exports.settleTransaction = async (req, res) => {
+	try {
+		const {transactionId} = req.body;
+		const result = await splitTransactionModel.findByIdAndUpdate(
+			transactionId,
+			{isSetteled: 1},
+			{new: true}
+		);
+		if (result.isSetteled) {
+			const tempUser = await User.findById(result.userId);
+			const borrower = await User.findById(result.borrower);
+			const message = `${tempUser.fullName} has paid you`;
+			const title = 'Transaction settled';
+			const transactionId = result._id;
+			// if (borrower.fcmToken) {
+			// 	await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+			// }
+			return res.send({status: true, message: 'Transaction Settled'});
+		}
+		return res.send({status: false, message: 'Transaction not found'});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
+exports.getMyPaidTransactions = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const paidTransaction = await splitTransactionModel.find({userId, isSetteled: true});
+		return res.send({status: 1, data: paidTransaction});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
+exports.getMyPendingTransaction = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const pendingTransaction = await splitTransactionModel.find({userId, isSetteled: false});
+		return res.send({status: 1, data: pendingTransaction});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
