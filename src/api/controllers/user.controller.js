@@ -22,6 +22,7 @@ const {
 	settleTransaction,
 	getMyPendingTransaction,
 	getMyPaidTransactions,
+	getMyRequest,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -196,6 +197,14 @@ exports.createTransaction = async (req, res) => {
 exports.settleTransaction = async (req, res) => {
 	try {
 		await settleTransaction(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.myRequest = async (req, res) => {
+	try {
+		await getMyRequest(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}

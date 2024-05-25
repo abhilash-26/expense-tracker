@@ -532,6 +532,20 @@ exports.settleTransaction = async (req, res) => {
 	}
 };
 
+exports.getMyRequest = async (req, res) => {
+	try {
+		const {userId} = req.query;
+		const result = await splitTransactionModel
+			.find({borrower: userId})
+			.populate('userId', 'fullName');
+		return res.send({status: true, data: result});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
 exports.getMyPaidTransactions = async (req, res) => {
 	try {
 		const {userId} = req.query;

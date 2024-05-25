@@ -36,6 +36,8 @@ router.post('/create-transaction', controller.createTransaction);
 
 router.post('/settle-transaction', controller.settleTransaction);
 
+router.get('/my-request', controller.myRequest);
+
 router.get('/pending-transaction', controller.pendingTransaction);
 
 router.get('/paid-transaction', controller.paidTransaction);
