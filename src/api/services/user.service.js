@@ -56,8 +56,7 @@ exports.createUser = async (req, res) => {
 			.status(httpStatus.CREATED)
 			.send({status: true, data: dataToSend, message: 'user register success'});
 	} catch (error) {
-		console.log(error);
-		res.status(500).send(error.message);
+		return res.status(500).send(error.message);
 	}
 };
 
@@ -156,7 +155,6 @@ exports.verifyOtp = async (req, res) => {
 			otp,
 			email,
 		});
-		console.log(savedOtp);
 		if (!savedOtp) {
 			return res
 				.status(httpStatus.OK)
@@ -212,9 +210,11 @@ exports.createIncome = async (req, res) => {
 	try {
 		const {income, userId} = req.body;
 		const result = await Income.create({userId, income});
-		res.status(httpStatus.CREATED).send({status: true, data: result});
+		return res.status(httpStatus.CREATED).send({status: true, data: result});
 	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
 
@@ -225,9 +225,11 @@ exports.getIncome = async (req, res) => {
 			return res.send({status: false, message: 'UserId is required'});
 		}
 		const result = await Income.find({userId});
-		res.status(httpStatus.OK).send({status: true, data: result});
+		return res.status(httpStatus.OK).send({status: true, data: result});
 	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
 
@@ -243,7 +245,9 @@ exports.editIncome = async (req, res) => {
 		}
 		return res.send({status: false, message: 'Something went wrong'});
 	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
 
@@ -277,9 +281,11 @@ exports.createBudget = async (req, res) => {
 			subscriptions,
 			others,
 		});
-		res.status(httpStatus.CREATED).send({status: true, data: result});
+		return res.status(httpStatus.CREATED).send({status: true, data: result});
 	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
 
@@ -287,9 +293,11 @@ exports.getBudget = async (req, res) => {
 	try {
 		const {userId} = req.query;
 		const result = await Budget.find({userId});
-		res.status(httpStatus.OK).send({status: true, data: result});
+		return res.status(httpStatus.OK).send({status: true, data: result});
 	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
 
@@ -330,7 +338,9 @@ exports.editBudget = async (req, res) => {
 		}
 		return res.send({status: false, message: 'Something went wrong'});
 	} catch (error) {
-		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
 	}
 };
 
@@ -433,7 +443,7 @@ exports.getNotification = async (req, res) => {
 exports.sendManualNotification = async (req, res) => {
 	try {
 		const users = await User.find();
-		const notificationData = users.map(async (item) => {
+		users.map(async (item) => {
 			const goalResult = await Goal.find({userId: item._id});
 			if (goalResult.length > 0) {
 				let total = 0;
@@ -482,9 +492,9 @@ exports.createTransaction = async (req, res) => {
 				const message = `You owe ${splitAmount} to ${borrower.fullName}`;
 				const title = 'New Payment Detail';
 				const transactionId = result._id;
-				// if (tempUser.fcmToken) {
-				// 	await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
-				// }
+				if (tempUser.fcmToken) {
+					await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+				}
 			}
 		});
 		return res.send({status: true, message: 'Transaction Created'});
@@ -509,9 +519,9 @@ exports.settleTransaction = async (req, res) => {
 			const message = `${tempUser.fullName} has paid you`;
 			const title = 'Transaction settled';
 			const transactionId = result._id;
-			// if (borrower.fcmToken) {
-			// 	await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
-			// }
+			if (borrower.fcmToken) {
+				await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+			}
 			return res.send({status: true, message: 'Transaction Settled'});
 		}
 		return res.send({status: false, message: 'Transaction not found'});
@@ -525,7 +535,10 @@ exports.settleTransaction = async (req, res) => {
 exports.getMyPaidTransactions = async (req, res) => {
 	try {
 		const {userId} = req.query;
-		const paidTransaction = await splitTransactionModel.find({userId, isSetteled: true});
+		const paidTransaction = await splitTransactionModel
+			.find({userId, isSetteled: true})
+			.populate('userId', 'fullName')
+			.populate('borrower', 'fullName');
 		return res.send({status: 1, data: paidTransaction});
 	} catch (error) {
 		return res
@@ -537,7 +550,11 @@ exports.getMyPaidTransactions = async (req, res) => {
 exports.getMyPendingTransaction = async (req, res) => {
 	try {
 		const {userId} = req.query;
-		const pendingTransaction = await splitTransactionModel.find({userId, isSetteled: false});
+		const pendingTransaction = await splitTransactionModel
+			.find({userId, isSetteled: false})
+			.populate('userId', 'fullName')
+			.populate('borrower', 'fullName');
+
 		return res.send({status: 1, data: pendingTransaction});
 	} catch (error) {
 		return res
