@@ -28,6 +28,8 @@ router.get('/list-goal', controller.listGoal);
 
 router.post('/edit-goal', controller.editGoal);
 
+router.post('/goal-saving', controller.updateGoalSaving);
+
 router.get('/notification', controller.getNotification);
 
 router.post('/manual-notification', controller.sendManualNotification);

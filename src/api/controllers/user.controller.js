@@ -23,6 +23,7 @@ const {
 	getMyPendingTransaction,
 	getMyPaidTransactions,
 	getMyRequest,
+	updateGoalSaving,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -157,6 +158,14 @@ exports.listGoal = async (req, res) => {
 exports.editGoal = async (req, res) => {
 	try {
 		await editGoal(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.updateGoalSaving = async (req, res) => {
+	try {
+		await updateGoalSaving(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}

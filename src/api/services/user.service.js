@@ -430,6 +430,20 @@ exports.editGoal = async (req, res) => {
 	}
 };
 
+exports.updateGoalSaving = async (req, res) => {
+	try {
+		const {amount, id} = req.body;
+		const date = new Date();
+		if (!id) {
+			return res.send({status: 'false', message: 'id is required'});
+		}
+		Goal.findByIdAndUpdate(id, {$push: {savedAmount: {amount, date}}}, {new: true});
+		return res.status(httpStatus.CREATED).send({status: true, message: 'Goal Updated'});
+	} catch (error) {
+		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
+	}
+};
+
 exports.getNotification = async (req, res) => {
 	try {
 		const {userId} = req.query;
@@ -477,26 +491,47 @@ exports.sendManualNotification = async (req, res) => {
 
 exports.createTransaction = async (req, res) => {
 	try {
-		const {users, userId, amount, title} = req.body;
-		const splitAmount = amount / (users.length + 1);
-		users.forEach(async (item) => {
-			const result = await splitTransactionModel.create({
-				borrower: userId,
-				userId: item,
-				amount: splitAmount,
-				title,
-			});
-			if (result) {
-				const tempUser = await User.findById(item);
-				const borrower = await User.findById(userId);
-				const message = `You owe ${splitAmount} to ${borrower.fullName}`;
-				const title = 'New Payment Detail';
-				const transactionId = result._id;
-				if (tempUser.fcmToken) {
-					await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+		const {users, userId, amount, title, manual} = req.body;
+		if (manual) {
+			users.forEach(async (item) => {
+				const result = await splitTransactionModel.create({
+					borrower: userId,
+					userId: item.id,
+					amount: item.amount,
+					title,
+				});
+				if (result) {
+					const tempUser = await User.findById(item.id);
+					const borrower = await User.findById(userId);
+					const message = `You owe ${item.amount} to ${borrower.fullName}`;
+					const title = 'New Payment Detail';
+					const transactionId = result._id;
+					if (tempUser.fcmToken) {
+						await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+					}
 				}
-			}
-		});
+			});
+		} else {
+			const splitAmount = amount / (users.length + 1);
+			users.forEach(async (item) => {
+				const result = await splitTransactionModel.create({
+					borrower: userId,
+					userId: item,
+					amount: splitAmount,
+					title,
+				});
+				if (result) {
+					const tempUser = await User.findById(item);
+					const borrower = await User.findById(userId);
+					const message = `You owe ${splitAmount} to ${borrower.fullName}`;
+					const title = 'New Payment Detail';
+					const transactionId = result._id;
+					if (tempUser.fcmToken) {
+						await sendNotification(message, title, tempUser.fcmToken, tempUser._id, transactionId);
+					}
+				}
+			});
+		}
 		return res.send({status: true, message: 'Transaction Created'});
 	} catch (error) {
 		return res
