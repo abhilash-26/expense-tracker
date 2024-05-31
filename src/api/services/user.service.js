@@ -546,10 +546,10 @@ exports.createTransaction = async (req, res) => {
 
 exports.cancelTransaction = async (req, res) => {
 	try {
-		const {transactionId} = req.body;
-		transactionId.forEach(async (item) => {
-			const result = await splitTransactionModel.findByIdAndDelete(item);
-		});
+		const {id} = req.body;
+
+		const result = await splitTransactionModel.findByIdAndUpdate(id, {declined: true});
+
 		return res.send({status: true, message: 'Transaction canceled'});
 	} catch (error) {
 		return res
@@ -618,7 +618,7 @@ exports.getMyPendingTransaction = async (req, res) => {
 	try {
 		const {userId} = req.query;
 		const pendingTransaction = await splitTransactionModel
-			.find({userId, isSetteled: false})
+			.find({userId, isSetteled: false, declined: false})
 			.populate('userId', 'fullName')
 			.populate('borrower', 'fullName');
 
