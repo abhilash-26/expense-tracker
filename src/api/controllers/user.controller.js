@@ -24,6 +24,7 @@ const {
 	getMyPaidTransactions,
 	getMyRequest,
 	updateGoalSaving,
+	cancelTransaction,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
@@ -198,6 +199,14 @@ exports.sendManualNotification = async (req, res) => {
 exports.createTransaction = async (req, res) => {
 	try {
 		await createTransaction(req, res);
+	} catch (error) {
+		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
+	}
+};
+
+exports.cancelTransaction = async (req, res) => {
+	try {
+		await cancelTransaction(req, res);
 	} catch (error) {
 		res.status(httpStatus.GATEWAY_TIMEOUT).send(error.message);
 	}

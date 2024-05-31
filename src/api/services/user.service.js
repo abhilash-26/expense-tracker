@@ -540,6 +540,20 @@ exports.createTransaction = async (req, res) => {
 	}
 };
 
+exports.cancelTransaction = async (req, res) => {
+	try {
+		const {transactionId} = req.body;
+		transactionId.forEach(async (item) => {
+			const result = await splitTransactionModel.findByIdAndDelete(item);
+		});
+		return res.send({status: true, message: 'Transaction canceled'});
+	} catch (error) {
+		return res
+			.status(httpStatus.INTERNAL_SERVER_ERROR)
+			.send({status: false, message: error.message});
+	}
+};
+
 exports.settleTransaction = async (req, res) => {
 	try {
 		const {transactionId} = req.body;

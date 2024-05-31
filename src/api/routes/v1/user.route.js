@@ -36,6 +36,8 @@ router.post('/manual-notification', controller.sendManualNotification);
 
 router.post('/create-transaction', controller.createTransaction);
 
+router.post('/cancel-transaction', controller.cancelTransaction);
+
 router.post('/settle-transaction', controller.settleTransaction);
 
 router.get('/my-request', controller.myRequest);
