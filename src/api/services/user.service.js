@@ -12,6 +12,7 @@ const Goal = require('../models/goal.model');
 const Notification = require('../models/notification.model');
 const sendNotification = require('./firebase');
 const splitTransactionModel = require('../models/splitTransaction.model');
+const {v4: uuidv4} = require('uuid');
 
 exports.createUser = async (req, res) => {
 	try {
@@ -492,11 +493,13 @@ exports.sendManualNotification = async (req, res) => {
 exports.createTransaction = async (req, res) => {
 	try {
 		const {users, userId, amount, title, manual} = req.body;
+		const tId = uuidv4();
 		if (manual) {
 			users.forEach(async (item) => {
 				const result = await splitTransactionModel.create({
 					borrower: userId,
 					userId: item.id,
+					transactionId: tId,
 					amount: item.amount,
 					title,
 				});
@@ -517,6 +520,7 @@ exports.createTransaction = async (req, res) => {
 				const result = await splitTransactionModel.create({
 					borrower: userId,
 					userId: item,
+					transactionId: tId,
 					amount: splitAmount,
 					title,
 				});
