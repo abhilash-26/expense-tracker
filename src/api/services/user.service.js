@@ -438,7 +438,7 @@ exports.updateGoalSaving = async (req, res) => {
 		if (!id) {
 			return res.send({status: 'false', message: 'id is required'});
 		}
-		Goal.findByIdAndUpdate(id, {$push: {savedAmount: {amount, date}}}, {new: true});
+		await Goal.findByIdAndUpdate(id, {$push: {savedAmount: {amount, date}}}, {new: true});
 		return res.status(httpStatus.CREATED).send({status: true, message: 'Goal Updated'});
 	} catch (error) {
 		res.status(httpStatus.INTERNAL_SERVER_ERROR).send({status: false, message: error.message});
@@ -618,7 +618,7 @@ exports.getMyPendingTransaction = async (req, res) => {
 	try {
 		const {userId} = req.query;
 		const pendingTransaction = await splitTransactionModel
-			.find({userId, isSetteled: false, declined: false})
+			.find({userId, isSetteled: false, declined: {$ne: true}})
 			.populate('userId', 'fullName')
 			.populate('borrower', 'fullName');
 
