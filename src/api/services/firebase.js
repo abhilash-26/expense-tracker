@@ -1,6 +1,7 @@
 const serviceAccount = require('../../config/privateKey.json');
 const Notification = require('../models/notification.model');
 const axios = require('axios');
+
 const sendNotification = async (message, title, userFcm, userId, transactionId) => {
 	const messageTitle = title || 'test title';
 	const body = message || 'test body';
