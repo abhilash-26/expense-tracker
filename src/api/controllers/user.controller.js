@@ -25,6 +25,7 @@ const {
 	getMyRequest,
 	updateGoalSaving,
 	cancelTransaction,
+	resetPassword,
 } = require('../services/user.service');
 
 const httpStatus = require('http-status');
